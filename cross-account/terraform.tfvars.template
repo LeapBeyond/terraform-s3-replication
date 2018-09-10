@@ -1,0 +1,6 @@
+source_region = "eu-west-2"
+source_profile = "???"
+source_account = ""
+dest_region = "eu-west-1"
+dest_profile = "???"
+dest_account = ""
