@@ -2,12 +2,14 @@
 # KMS key for server side encryption on the destination bucket
 # ------------------------------------------------------------------------------
 resource "aws_kms_key" "destination" {
+  provider                = "aws.dest"
   deletion_window_in_days = 7
 
   tags = "${merge(map("Name", "destination_data"), var.tags)}"
 }
 
 resource "aws_kms_alias" "destination" {
+  provider      = "aws.dest"
   name          = "alias/destination"
   target_key_id = "${aws_kms_key.destination.key_id}"
 }
@@ -16,8 +18,10 @@ resource "aws_kms_alias" "destination" {
 # S3 bucket to act as the replication target.
 # ------------------------------------------------------------------------------
 resource "aws_s3_bucket" "destination" {
+  provider      = "aws.dest"
   bucket_prefix = "${var.bucket_prefix}"
   acl           = "private"
+  region        = "${var.dest_region}"
 
   versioning {
     enabled = true
