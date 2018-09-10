@@ -101,6 +101,21 @@ resource "aws_s3_bucket_policy" "destination" {
         "${aws_s3_bucket.destination.arn}",
         "${aws_s3_bucket.destination.arn}/*"
       ]
+    },
+    {
+      "Sid": "AllowRead",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "s3:List*",
+        "s3:Get*"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.destination.arn}",
+        "${aws_s3_bucket.destination.arn}/*"
+      ]
     }
   ]
 }

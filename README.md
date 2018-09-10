@@ -22,11 +22,6 @@ destination_bucket = arn:aws:s3:::crr-example20180910103218029300000002
 source_bucket = arn:aws:s3:::crr-example20180910103223585300000003
 ```
 
-The Terraform scripts drop an object `sample.txt` in the source bucket which should be able to see synchronized to the destination.
-
-### Regions
-The `variables.tf` file specifies the regions for the two S3 buckets - you may want to change these.
-
 ### Manual configuration
 
 There is a known deficiency in the AWS API when configuring S3 replication when SSE is in place: there is no way to specify the KMS key that is being used on the destination. This means that there is no way to do this through Terraform either. After applying the Terraform assets, you will need to manually update the source bucket configuration through the AWS Console:
@@ -36,3 +31,44 @@ There is a known deficiency in the AWS API when configuring S3 replication when 
  - Use the `Replication` section, then edit the single replication rule;
  - On the first step of the edit wizard, choose the correct KMS key from the pick list titled "Choose one or more keys for decrypting source objects";
  - Select the existing configuration on each of the next steps of the wizard.
+
+## Cross-Account replication
+The `cross-account` example needs two different profiles, pointing at different accounts, each with a high level of privilege to use IAM, KMS and S3. To begin with , copy the `terraform.tfvars.template` to `terraform.tfvars` and provide the relevant information.
+
+Subsequent to that, do:
+
+```
+terraform init
+terraform apply
+```
+
+At the end of this, the two buckets should be reported to you:
+
+```
+Outputs:
+destination_bucket = arn:aws:s3:::crr-example20180910103218029300000002
+source_bucket = arn:aws:s3:::crr-example20180910103223585300000003
+```
+### Manual configuration
+As with the `same-account` case, we are caught by the deficiency in the AWS API, and need to do some manual steps on both the source and destination account.
+
+On the *source* account AWS Console:
+ - Choose the S3 service;
+ - Select the source bucket;
+ - Select `Management` then `Replication`
+ - Choose the source encryption key (this should be easy to find since we gave it an alias);
+ - Enable "Change object ownership to destination bucket owner" and provide the *destination* account ID.
+
+ On the *destination* account AWS Console:
+  - Choose the S3 service;
+  - Select the destination bucket;
+  - Select `Management` then `Replication`;
+  - From the `Actions` pull down menu choose "Receive objects...";
+  - Provide the *source* account ID.
+
+## Notes
+There are subtle differences between the cross-account and same-account situations, mainly based around permissions.
+
+To begin with, the destination bucket needs a policy that allows the source account to write to replicate to it. Because we are adding a bucket policy, you will also then need to add additional permissions for users in the destination bucket.
+
+Similarly, the KMS key in the destination account needs to allow access from the source account. By only allowing `kms:Encrypt` action, the access permission does not need to be more complex.

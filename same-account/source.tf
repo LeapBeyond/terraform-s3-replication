@@ -45,6 +45,7 @@ resource "aws_iam_policy" "replication" {
     {
       "Action": [
         "s3:GetObjectVersion",
+        "s3:GetObjectVersionForReplication",
         "s3:GetObjectVersionAcl"
       ],
       "Effect": "Allow",
@@ -59,6 +60,40 @@ resource "aws_iam_policy" "replication" {
       ],
       "Effect": "Allow",
       "Resource": "${aws_s3_bucket.destination.arn}/*"
+    },
+    {
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Effect": "Allow",
+      "Condition": {
+        "StringLike": {
+          "kms:ViaService": "s3.${var.source_region}.amazonaws.com",
+          "kms:EncryptionContext:aws:s3:arn": [
+            "${aws_s3_bucket.source.arn}"
+          ]
+        }
+      },
+      "Resource": [
+        "${aws_kms_key.source.arn}"
+      ]
+    },
+    {
+      "Action": [
+        "kms:Encrypt"
+      ],
+      "Effect": "Allow",
+      "Condition": {
+        "StringLike": {
+          "kms:ViaService": "s3.${var.dest_region}.amazonaws.com",
+          "kms:EncryptionContext:aws:s3:arn": [
+            "${aws_s3_bucket.destination.arn}"
+          ]
+        }
+      },
+      "Resource": [
+        "${aws_kms_key.destination.arn}"
+      ]
     }
   ]
 }
