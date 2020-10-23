@@ -74,7 +74,7 @@ To begin with, the destination bucket needs a policy that allows the source acco
 Similarly, the KMS key in the destination account needs to allow access from the source account. By only allowing `kms:Encrypt` action, the access permission does not need to be more complex.
 
 ## License
-Copyright 2018 Leap Beyond Analytics
+Copyright 2018 Leap Beyond Emerging Technologies B.V.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
