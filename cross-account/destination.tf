@@ -2,10 +2,15 @@
 # KMS key for server side encryption on the destination bucket
 # ------------------------------------------------------------------------------
 resource "aws_kms_key" "destination" {
-  provider                = "aws.dest"
+  provider                = aws.dest
   deletion_window_in_days = 7
 
-  tags = "${merge(map("Name", "destination_data"), var.tags)}"
+  tags = merge(
+    {
+      "Name" = "destination_data"
+    },
+    var.tags,
+  )
 
   policy = <<POLICY
 {
@@ -34,22 +39,22 @@ resource "aws_kms_key" "destination" {
   ]
 }
 POLICY
+
 }
 
 resource "aws_kms_alias" "destination" {
-  provider      = "aws.dest"
+  provider      = aws.dest
   name          = "alias/destination"
-  target_key_id = "${aws_kms_key.destination.key_id}"
+  target_key_id = aws_kms_key.destination.key_id
 }
 
 # ------------------------------------------------------------------------------
 # S3 bucket to act as the replication target.
 # ------------------------------------------------------------------------------
 resource "aws_s3_bucket" "destination" {
-  provider      = "aws.dest"
-  bucket_prefix = "${var.bucket_prefix}"
+  provider      = aws.dest
+  bucket_prefix = var.bucket_prefix
   acl           = "private"
-  region        = "${var.dest_region}"
 
   versioning {
     enabled = true
@@ -62,13 +67,18 @@ resource "aws_s3_bucket" "destination" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = "${aws_kms_key.destination.arn}"
+        kms_master_key_id = aws_kms_key.destination.arn
         sse_algorithm     = "aws:kms"
       }
     }
   }
 
-  tags = "${merge(map("Name", "Destination Bucket"), var.tags)}"
+  tags = merge(
+    {
+      "Name" = "Destination Bucket"
+    },
+    var.tags,
+  )
 }
 
 # ------------------------------------------------------------------------------
@@ -76,8 +86,8 @@ resource "aws_s3_bucket" "destination" {
 # replicate into it.
 # ------------------------------------------------------------------------------
 resource "aws_s3_bucket_policy" "destination" {
-  provider = "aws.dest"
-  bucket   = "${aws_s3_bucket.destination.id}"
+  provider = aws.dest
+  bucket   = aws_s3_bucket.destination.id
 
   policy = <<POLICY
 {
@@ -120,4 +130,6 @@ resource "aws_s3_bucket_policy" "destination" {
   ]
 }
 POLICY
+
 }
+
