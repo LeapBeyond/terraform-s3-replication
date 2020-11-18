@@ -18,5 +18,9 @@ variable "bucket_prefix" {
   default = "crr-example"
 }
 
-variable "aws_region" {}
-variable "aws_profile" {}
+variable "aws_region" {
+}
+
+variable "aws_profile" {
+}
+
